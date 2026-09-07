@@ -81,4 +81,5 @@ bash <本skill目录>/scripts/upload-hf-cache.sh
 - **WebDAV 403 但读正常** = OpenList 用户权限位缺 bit9（WebDAV 写入）。v4 默认 admin permission=29183（缺 bit9）→ API 改 29695：`POST /api/admin/user/update`（见 restore skill 安装节命令）
 - **Windows native curl 不认 /dev/null**（exit 23，输出全无）：脚本内一律不 `-o /dev/null`；`-T` 的本地文件路径先 cygpath -w
 - OpenList 后台进程随 Hermes 会话退出而死 → 常驻要 Scheduled Task（本机）/ systemd（服务器），见 restore skill
+- **pg_ctl 输出别接 `| tail` 管道**：pg_ctl 拉起的 postgres 继承 stdout，管道永远等不到 EOF，整条命令链挂死数小时（实测 2026-09-07 掛 4.5h）。正确：pg_ctl 独立后台跑或 `-l logfile` 重定向。
 - 百度网盘 >20MB 下载需本机中转（web_proxy + webdav_policy=native_proxy，建存储时已配好）
