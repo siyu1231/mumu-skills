@@ -80,7 +80,7 @@ bash <本skill目录>/scripts/upload-hf-cache.sh
 
 **口令（HERMES_BACKUP_PASSPHRASE）绝不上传网盘**——网盘上是密文、口令是钥匙，钥匙和锁着的箱子放同一处 = 加密作废。口令唯一归宿：用户的密码管理器（Bitwarden/1Password/浏览器密码库），首次恢复时手输一次。
 
-**单秘密 bootstrap**：恢复新机器只应搬运这一个秘密。其余一切（API keys、微信 token、网盘 token、OpenList 密码、备份 cfg）都应在加密包内。当前缺口（待改）：`~/.hermes-backup.cfg`、网盘 storage token（OpenList 的 data 目录）、OpenList admin 密码还在包外，恢复时要手工重配——**待办**：backup.sh 把这三样收进加密包，restore.sh 解出后自动写回，实现真正的「输一次口令走全程」。
+**单秘密 bootstrap**：恢复新机器只应搬运一个秘密（口令）。其余一切现在都收进加密包的 `bootstrap/` 目录（2026-09-07 已实施）：`~/.hermes-backup.cfg`、`~/openlist/.admin-pass`、`~/openlist/data`（SQLite 内含网盘挂载配置+token）。restore.sh 解包后自动回写 → 新机器 OpenList 装好启动即用，免扫码免手配。**首次恢复的唯一例外**：下载备份需要先把网盘挂上（token 在包内、先有鸡还是先有蛋）——首次时 token 从密码管理器/扫码来，之后机器自持。
 
 ## 坑（实测 2026-09）
 

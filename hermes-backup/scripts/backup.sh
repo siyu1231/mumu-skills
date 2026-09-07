@@ -54,6 +54,18 @@ for d in skills memories hindsight weixin pairing platforms scripts hooks kanban
 done
 rm -f "$DEST/cron/executions.db"* 2>/dev/null || true
 
+# bootstrap 秘密收进加密包（单秘密原则：包外只留口令）
+mkdir -p "$DEST/bootstrap"
+[ -f "$HOME/.hermes-backup.cfg" ] && cp "$HOME/.hermes-backup.cfg" "$DEST/bootstrap/hermes-backup.cfg"
+[ -f "$HOME/openlist/.admin-pass" ] && cp "$HOME/openlist/.admin-pass" "$DEST/bootstrap/openlist-admin-pass"
+[ -f "$HOME/.baidu-storage-addition.json" ] && cp "$HOME/.baidu-storage-addition.json" "$DEST/bootstrap/openlist-storage-baidu.json"
+# OpenList data 目录（SQLite 内含网盘挂载配置+token）→ 新机器 OpenList 装好即用，免扫码
+if [ -d "$HOME/openlist/data" ]; then
+  mkdir -p "$DEST/bootstrap/openlist-data"
+  cp -r "$HOME/openlist/data/." "$DEST/bootstrap/openlist-data/" 2>/dev/null || true
+  echo "       bootstrap 已收（cfg+admin-pass+openlist data）"
+fi
+
 if [ -f "$HERMES_HOME/state.db" ]; then
   SRC_DB="$HERMES_HOME/state.db"; DST_DB="$DEST/state.db"
   if command -v cygpath >/dev/null 2>&1; then SRC_DB=$(cygpath -m "$SRC_DB"); DST_DB=$(cygpath -m "$DST_DB"); fi

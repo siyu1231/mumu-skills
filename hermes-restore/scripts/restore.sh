@@ -63,6 +63,42 @@ cp -r "$WORK/x/hermes/." "$HERMES_HOME/"
 [ -f "$WORK/x/hermes-pg.sql.gz" ] && cp "$WORK/x/hermes-pg.sql.gz" "$HERMES_HOME/" && PGDUMP=yes || PGDUMP=no
 echo "       已解包到 $HERMES_HOME（pg dump: $PGDUMP）"
 
+echo "[4.3/5] 完整性自检…"
+PY=$(command -v python3 || command -v python)
+if [ -f "$HERMES_HOME/state.db" ]; then
+  QC=$("$PY" - "$HERMES_HOME/state.db" <<'PYEOF'
+import sqlite3, sys
+try:
+    c = sqlite3.connect(sys.argv[1])
+    ok = c.execute("PRAGMA quick_check").fetchone()[0]
+    n = c.execute("SELECT count(*) FROM sessions").fetchone()[0]
+    print(f"{ok}|{n}")
+except Exception as e:
+    print(f"ERROR|{e}")
+PYEOF
+)
+  case "$QC" in
+    ok|*) echo "       state.db 完整，sessions=$(echo "$QC" | cut -d'|' -f2)" ;;
+    *) echo "ERROR: state.db 损坏（$QC）——多半是解包被打断（恢复期间杀了 hermes 进程会截断大文件）。请重跑本脚本。" >&2; exit 1 ;;
+  esac
+else
+  echo "ERROR: 解包后没有 state.db——解包不完整，请重跑本脚本" >&2; exit 1
+fi
+
+echo "[4.4/5] 回写 bootstrap 秘密（cfg/OpenList/网盘）…"
+if [ -d "$WORK/x/hermes/bootstrap" ]; then
+  B="$WORK/x/hermes/bootstrap"
+  [ -f "$B/hermes-backup.cfg" ] && cp "$B/hermes-backup.cfg" "$HOME/.hermes-backup.cfg" && chmod 600 "$HOME/.hermes-backup.cfg" && echo "       ~/.hermes-backup.cfg ✓"
+  [ -f "$B/openlist-admin-pass" ] && mkdir -p "$HOME/openlist" && cp "$B/openlist-admin-pass" "$HOME/openlist/.admin-pass" && chmod 600 "$HOME/openlist/.admin-pass" && echo "       ~/openlist/.admin-pass ✓"
+  if [ -d "$B/openlist-data" ]; then
+    mkdir -p "$HOME/openlist"
+    [ -d "$HOME/openlist/data" ] && mv "$HOME/openlist/data" "$HOME/openlist/data.pre_restore.$(date +%s)" && echo "       已有 openlist/data 移备"
+    cp -r "$B/openlist-data" "$HOME/openlist/data" && echo "       ~/openlist/data ✓（网盘挂载+token 随包恢复，免扫码；装好 OpenList 启动即用）"
+  fi
+else
+  echo "       包内无 bootstrap（旧版备份）——网盘/OpenList 需手工配置"
+fi
+
 echo "[4.5/5] HF 模型缓存（网盘有则拉，免去 HF 下载）…"
 HF_DL="$WORK/hf.tar.gz"
 command -v cygpath >/dev/null 2>&1 && HF_DL=$(cygpath -m "$HF_DL")
