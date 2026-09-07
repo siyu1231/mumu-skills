@@ -107,7 +107,7 @@ passphrase 优先级：参数 > 环境变量 HERMES_BACKUP_PASSPHRASE > 目标�
 
 ## 坑
 
-- **恢复会整体替换 state.db**：任何正在运行的 hermes 进程（gateway/会话）立刻报 `FATAL: state.db was replaced underneath the gateway` 并拒绝写入——恢复前先停全部 hermes 进程。若由 hermes agent 自己驱动恢复（新机器场景），该会话报废属预期，恢复完 `pkill -f hermes` 后重开会话/起 gateway。
+- **bad decrypt = 口令不对或密文损坏**：先换另一条口令试（备份包可能因 backup 侧环境变量残留用了旧口令加密，实测 204444 包）；都失败才怀疑损坏重下。- **恢复会整体替换 state.db**：任何正在运行的 hermes 进程（gateway/会话）立刻报 `FATAL: state.db was replaced underneath the gateway` 并拒绝写入——恢复前先停全部 hermes 进程。若由 hermes agent 自己驱动恢复（新机器场景），该会话报废属预期，恢复完 `pkill -f hermes` 后重开会话/起 gateway。
 - 备份包内含 .env（全部密钥）→ 传输/存储全程加密，解密只在目标机本地做
 - 微信同账号两端互踢：恢复验证前停掉旧机器的 gateway
 - state.db / cron jobs.json 跨版本恢复前先对齐两端 hermes commit

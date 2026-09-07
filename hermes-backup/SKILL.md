@@ -84,6 +84,8 @@ bash <本skill目录>/scripts/upload-hf-cache.sh
 
 ## 坑（实测 2026-09）
 
+- **口令读取优先级：环境变量 > .env**。终端残留旧 `HERMES_BACKUP_PASSPHRASE`（export 过）会让新备份**用错口令加密**，云端包与 .env 不一致，恢复时报 bad decrypt（实测 2026-09-07：204444 包）。跑 backup 前确认 `echo ${HERMES_BACKUP_PASSPHRASE:-unset}` 是 unset 或与 .env 一致，不一致先 unset。
+
 - **WebDAV 403 但读正常** = OpenList 用户权限位缺 bit9（WebDAV 写入）。v4 默认 admin permission=29183（缺 bit9）→ API 改 29695：`POST /api/admin/user/update`（见 restore skill 安装节命令）
 - **Windows native curl 不认 /dev/null**（exit 23，输出全无）：脚本内一律不 `-o /dev/null`；`-T` 的本地文件路径先 cygpath -w
 - OpenList 后台进程随 Hermes 会话退出而死 → 常驻要 Scheduled Task（本机）/ systemd（服务器），见 restore skill
