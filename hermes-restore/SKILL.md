@@ -83,7 +83,7 @@ HERMES_BACKUP_PASSPHRASE=<口令> bash <本skill目录>/scripts/restore.sh lates
 5. 起 gateway
 6. 验证（memory status / 平台消息 / cron / MCP）
 
-passphrase 优先级：参数 > 环境变量 HERMES_BACKUP_PASSPHRASE > 目标机 .env。全新机器第一次必须用户手输（这就是唯一的「人肉搬运」的秘密，存密码管理器）。
+passphrase 优先级：参数 > 环境变量 HERMES_BACKUP_PASSPHRASE > 目标机 .env。全新机器第一次必须用户手输（唯一留在包外的秘密，存密码管理器）。口令设计原则见 hermes-backup skill「口令设计」节。
 
 ## 恢复后必做清单（按序）
 

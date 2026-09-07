@@ -76,6 +76,12 @@ bash <本skill目录>/scripts/upload-hf-cache.sh
 | OpenList | 见 hermes-restore skill 安装节（含网盘 token，重建时重新授权） | ~/openlist |
 | HF 模型缓存 | 用 scripts/upload-hf-cache.sh 上传，restore 自动拉 | ~/.cache/huggingface |
 
+## 口令设计（单秘密原则，2026-09-07 用户问答沉淀）
+
+**口令（HERMES_BACKUP_PASSPHRASE）绝不上传网盘**——网盘上是密文、口令是钥匙，钥匙和锁着的箱子放同一处 = 加密作废。口令唯一归宿：用户的密码管理器（Bitwarden/1Password/浏览器密码库），首次恢复时手输一次。
+
+**单秘密 bootstrap**：恢复新机器只应搬运这一个秘密。其余一切（API keys、微信 token、网盘 token、OpenList 密码、备份 cfg）都应在加密包内。当前缺口（待改）：`~/.hermes-backup.cfg`、网盘 storage token（OpenList 的 data 目录）、OpenList admin 密码还在包外，恢复时要手工重配——**待办**：backup.sh 把这三样收进加密包，restore.sh 解出后自动写回，实现真正的「输一次口令走全程」。
+
 ## 坑（实测 2026-09）
 
 - **WebDAV 403 但读正常** = OpenList 用户权限位缺 bit9（WebDAV 写入）。v4 默认 admin permission=29183（缺 bit9）→ API 改 29695：`POST /api/admin/user/update`（见 restore skill 安装节命令）
