@@ -28,7 +28,7 @@ bash <本skill目录>/scripts/backup.sh
    WEBDAV_PATH=/dav/<挂载名>/hermes-backups
    KEEP=5
    ```
-4. **`.env` 里加 `HERMES_BACKUP_PASSPHRASE=<32位hex>`**。它随备份包走（在加密包内部，不构成泄露）；恢复新机器后该机器的 .env 自动带上，后续备份无感。
+4. **`.env` 里加 `HERMES_BACKUP_PASSPHRASE=<口令>`**。口令选「好记的句子」或「随机串存密码管理器」都行（实测用户用拼音句子 `wodehermesmima`，>14 字符纯小写对防丢场景够用；要防偷再加固）。它随备份包走（在加密包内部，不构成泄露）；恢复新机器后该机器的 .env 自动带上，后续备份无感。
 
 ## 备份内容（忠实口径）
 
