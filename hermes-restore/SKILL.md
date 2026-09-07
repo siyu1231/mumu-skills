@@ -53,13 +53,37 @@ mkdir -p ~/openlist && tar xzf openlist.tar.gz -C ~/openlist && cd ~/openlist
 5. 验证：PROPFIND 列目录 + MKCOL/PUT/DELETE 各一次
 6. 写 `~/.hermes-backup.cfg`（格式见 hermes-backup skill 前置节）
 
-## 恢复执行
+## 恢复执行（关键：必须由用户在 tmux 手动跑）
+
+**铁律：restore.sh 不能由 hermes agent 代跑**——它会整体替换 state.db，把正在跑它的那个会话杀掉（实测教训：cp 被父进程连坐杀死 → state.db 截断损坏）。
+
+正确模式是**交接式**：
+
+**第 1 步（agent 做，安全）**：装好 OpenList + 挂网盘 + 写好 ~/.hermes-backup.cfg。然后把下面这段命令原样输出给用户：
 
 ```bash
-bash <本skill目录>/scripts/restore.sh [备份文件名|latest] [passphrase]
+# ===== 用户在 tmux 里手动执行（agent 不要代跑） =====
+tmux new-session -s restore   # 或 tmux attach 进现有会话
+
+# 先停所有 hermes 进程（恢复会换 state.db，活着的会 FATAL 熔断）
+pkill -f hermes 2>/dev/null; sleep 2
+
+# 跑恢复（百度网盘 118M 约 30 分钟，挂在 tmux 里不断线）
+HERMES_BACKUP_PASSPHRASE=<口令> bash <本skill目录>/scripts/restore.sh latest 2>&1 | tee /root/restore.log
+
+# 看到 DONE 后退出 tmux（Ctrl-b d），恢复完成
+# ===== 完 =====
 ```
 
-passphrase 优先级：参数2 > 环境变量 HERMES_BACKUP_PASSPHRASE > 目标机 .env。全新机器用参数或环境变量。
+**第 2 步（agent 做，恢复后验证）**：用户说「好了」之后，agent 跑「恢复后必做清单」：
+1. venv 依赖（hindsight-all）
+2. 查 state.db 完整性：`python3 -c "import sqlite3; c=sqlite3.connect('/root/.hermes/state.db'); print(c.execute('PRAGMA quick_check').fetchone())"` 应返回 `('ok',)`
+3. PG 记忆库导入
+4. 机器修正（terminal.cwd、删锁文件）
+5. 起 gateway
+6. 验证（memory status / 平台消息 / cron / MCP）
+
+passphrase 优先级：参数 > 环境变量 HERMES_BACKUP_PASSPHRASE > 目标机 .env。全新机器第一次必须用户手输（这就是唯一的「人肉搬运」的秘密，存密码管理器）。
 
 ## 恢复后必做清单（按序）
 
