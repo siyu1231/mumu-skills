@@ -11,7 +11,7 @@ CFG_FILE="${HERMES_BACKUP_CFG:-$HOME/.hermes-backup.cfg}"
 
 PICK="${1:-latest}"
 echo "[1/5] 列远端备份…"
-GW=$(pgrep -af "gateway run" 2>/dev/null | head -1)
+GW=$(pgrep -af "gateway run" 2>/dev/null | head -1 || true)
 [ -n "$GW" ] && echo "WARN: gateway 在运行，恢复会替换 state.db 致其 FATAL——恢复完需重启所有 hermes 进程" >&2
 mapfile -t REMOTE < <(curl -fsS -u "$ALIST_USER:$ALIST_PASS" -X PROPFIND -H 'Depth: 1' "$ALIST_URL$WEBDAV_PATH/" | grep -oE 'hermes-backup-[0-9_]+\.tar\.gz\.enc' | sort -u)
 [ "${#REMOTE[@]}" -gt 0 ] || { echo "ERROR: 远端无备份" >&2; exit 1; }
